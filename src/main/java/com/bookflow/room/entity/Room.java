@@ -1,5 +1,6 @@
 package com.bookflow.room.entity;
 
+import com.bookflow.hotel.entity.Hotel;
 import com.bookflow.room.enums.RoomStatus;
 import com.bookflow.room.enums.RoomType;
 import jakarta.persistence.*;
@@ -36,6 +37,12 @@ public class Room {
     @Column(nullable = false)
     private Integer bedCount;
 
+    // --- RELATIONSHIP ---
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "hotel_id", nullable = false)
+    private Hotel hotel;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RoomStatus status = RoomStatus.ACTIVE;
@@ -58,6 +65,7 @@ public class Room {
     // --- BUSINESS CONSTRUCTOR ---
 
     public Room(
+            Hotel hotel,
             String roomNumber,
             RoomType roomType,
             String description,
@@ -65,6 +73,7 @@ public class Room {
             Integer capacity,
             Integer bedCount) {
 
+        this.hotel = hotel;
         this.roomNumber = roomNumber;
         this.roomType = roomType;
         this.description = description;
@@ -102,6 +111,10 @@ public class Room {
 
     public Integer getBedCount() {
         return bedCount;
+    }
+
+    public Hotel getHotel() {
+        return hotel;
     }
 
     public RoomStatus getStatus() {
@@ -157,4 +170,6 @@ public class Room {
     public void markUnderMaintenance() {
         this.status = RoomStatus.MAINTENANCE;
     }
+
+
 }
