@@ -28,4 +28,28 @@ public class HotelService {
         hotelRepository.deleteById(id);
 
     }
+    public Hotel updateHotel(Long id, Hotel hotel) {
+
+        Optional<Hotel> existingHotel = hotelRepository.findById(id);
+
+        if (existingHotel.isPresent()) {
+            Hotel hotelToUpdate = existingHotel.get();
+
+            hotelToUpdate.setName(hotel.getName());
+            hotelToUpdate.setDescription(hotel.getDescription());
+            hotelToUpdate.setStreet(hotel.getStreet());
+            hotelToUpdate.setCity(hotel.getCity());
+            hotelToUpdate.setPostalCode(hotel.getPostalCode());
+            hotelToUpdate.setCountry(hotel.getCountry());
+            hotelToUpdate.setPhone(hotel.getPhone());
+            hotelToUpdate.setEmail(hotel.getEmail());
+            hotelToUpdate.setStarRating(hotel.getStarRating());
+            hotelToUpdate.setCheckInTime(hotel.getCheckInTime());
+            hotelToUpdate.setCheckOutTime(hotel.getCheckOutTime());
+
+            return hotelRepository.save(hotelToUpdate);
+        }
+        throw new RuntimeException("Hotel not found with id: " + id);
+
+    }
 }
