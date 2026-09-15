@@ -1,12 +1,12 @@
-# 📚 BookFlow
+# 🏨 BookFlow — Booking Management API
 
-BookFlow is a backend REST API for hotel and room booking management, built with **Java and Spring Boot**.
+BookFlow is a modern hotel booking backend application built with Java and Spring Boot.
 
-The application provides a structured backend for managing users, hotels, rooms, and reservations. It follows a layered architecture with a focus on clean domain modeling, secure authentication, role-based authorization, booking availability, validation, and maintainable REST APIs.
+It provides REST APIs for managing hotels, rooms, users, and bookings using a clean layered architecture.
 
-> **Status:** BookFlow is currently under active development. See the [Development Status](#development-status) section for implemented and planned features.
+## 🏗️ Project Overview
 
----
+![BookFlow Project Overview](docs/bookflow-overview.png)
 
 ## ✨ Features
 
