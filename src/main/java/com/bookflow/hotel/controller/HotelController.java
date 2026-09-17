@@ -1,15 +1,11 @@
 package com.bookflow.hotel.controller;
 
-import com.bookflow.hotel.entity.Hotel;
+import com.bookflow.hotel.dto.HotelCreateRequest;
+import com.bookflow.hotel.dto.HotelResponse;
+import com.bookflow.hotel.dto.HotelUpdateRequest;
 import com.bookflow.hotel.service.HotelService;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,29 +22,31 @@ public class HotelController {
 
     // GET /api/hotels
     @GetMapping
-    public List<Hotel> getAllHotels() {
+    public List<HotelResponse> getAllHotels() {
         return hotelService.getAllHotels();
     }
 
     // GET /api/hotels/{id}
     @GetMapping("/{id}")
-    public Optional<Hotel> getHotelById(@PathVariable Long id) {
+    public Optional<HotelResponse> getHotelById(@PathVariable Long id) {
         return hotelService.getHotelById(id);
     }
 
     // POST /api/hotels
     @PostMapping
-    public Hotel createHotel(@RequestBody Hotel hotel) {
-        return hotelService.createHotel(hotel);
+    public HotelResponse createHotel(
+            @Valid @RequestBody HotelCreateRequest request) {
+
+        return hotelService.createHotel(request);
     }
 
     // PUT /api/hotels/{id}
     @PutMapping("/{id}")
-    public Hotel updateHotel(
+    public HotelResponse updateHotel(
             @PathVariable Long id,
-            @RequestBody Hotel hotel) {
+            @Valid @RequestBody HotelUpdateRequest request) {
 
-        return hotelService.updateHotel(id, hotel);
+        return hotelService.updateHotel(id, request);
     }
 
     // DELETE /api/hotels/{id}
