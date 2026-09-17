@@ -1,5 +1,10 @@
 package com.bookflow.room.service;
 
+import com.bookflow.hotel.entity.Hotel;
+import com.bookflow.hotel.repository.HotelRepository;
+import com.bookflow.room.dto.RoomCreateRequest;
+import com.bookflow.room.dto.RoomResponse;
+import com.bookflow.room.dto.RoomUpdateRequest;
 import com.bookflow.room.entity.Room;
 import com.bookflow.room.repository.RoomRepository;
 import org.springframework.stereotype.Service;
@@ -11,25 +16,53 @@ import java.util.Optional;
 public class RoomService {
 
     private final RoomRepository roomRepository;
+    private final HotelRepository hotelRepository;
 
-    public RoomService(RoomRepository roomRepository) {
+    public RoomService(
+            RoomRepository roomRepository,
+            HotelRepository hotelRepository) {
+
         this.roomRepository = roomRepository;
+        this.hotelRepository = hotelRepository;
     }
 
-    public List<Room> getAllRooms(){
+    public List<RoomResponse> getAllRooms() {
+        return roomRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
 
-        return roomRepository.findAll();
+    public Optional<RoomResponse> getRoomById(Long id) {
+        return roomRepository.findById(id)
+                .map(this::mapToResponse);
     }
-    public Optional<Room> getRoomById(Long id) {
-        return roomRepository.findById(id);
+
+    public RoomResponse createRoom(RoomCreateRequest request) {
+
+        Hotel hotel = hotelRepository.findById(request.getHotelId())
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Hotel not found with id: " + request.getHotelId()
+                        )
+                );
+
+        Room room = new Room(
+                hotel,
+                request.getRoomNumber(),
+                request.getRoomType(),
+                request.getDescription(),
+                request.getPricePerNight(),
+                request.getCapacity(),
+                request.getBedCount()
+        );
+
+        Room savedRoom = roomRepository.save(room);
+
+        return mapToResponse(savedRoom);
     }
-    public Room createRoom(Room room) {
-        return roomRepository.save(room);
-    }
-    public void deleteRoom(Long id) {
-        roomRepository.deleteById(id);
-    }
-    public Room updateRoom(Long id, Room room) {
+
+    public RoomResponse updateRoom(Long id, RoomUpdateRequest request) {
 
         Optional<Room> existingRoom = roomRepository.findById(id);
 
@@ -37,20 +70,39 @@ public class RoomService {
 
             Room roomToUpdate = existingRoom.get();
 
-            roomToUpdate.setRoomNumber(room.getRoomNumber());
-            roomToUpdate.setRoomType(room.getRoomType());
-            roomToUpdate.setDescription(room.getDescription());
-            roomToUpdate.setPricePerNight(room.getPricePerNight());
-            roomToUpdate.setCapacity(room.getCapacity());
-            roomToUpdate.setBedCount(room.getBedCount());
+            roomToUpdate.setRoomNumber(request.getRoomNumber());
+            roomToUpdate.setRoomType(request.getRoomType());
+            roomToUpdate.setDescription(request.getDescription());
+            roomToUpdate.setPricePerNight(request.getPricePerNight());
+            roomToUpdate.setCapacity(request.getCapacity());
+            roomToUpdate.setBedCount(request.getBedCount());
 
-            return roomRepository.save(roomToUpdate);
+            Room updatedRoom = roomRepository.save(roomToUpdate);
+
+            return mapToResponse(updatedRoom);
         }
 
         throw new RuntimeException("Room not found with id: " + id);
     }
 
+    public void deleteRoom(Long id) {
+        roomRepository.deleteById(id);
+    }
 
+    private RoomResponse mapToResponse(Room room) {
 
-
+        return new RoomResponse(
+                room.getId(),
+                room.getHotel().getId(),
+                room.getRoomNumber(),
+                room.getRoomType(),
+                room.getDescription(),
+                room.getPricePerNight(),
+                room.getCapacity(),
+                room.getBedCount(),
+                room.getStatus(),
+                room.getCreatedAt(),
+                room.getUpdatedAt()
+        );
+    }
 }
