@@ -1,7 +1,10 @@
 package com.bookflow.booking.controller;
 
-import com.bookflow.booking.entity.Booking;
+import com.bookflow.booking.dto.BookingCreateRequest;
+import com.bookflow.booking.dto.BookingResponse;
+import com.bookflow.booking.dto.BookingUpdateRequest;
 import com.bookflow.booking.service.BookingService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,26 +19,32 @@ public class BookingController {
     public BookingController(BookingService bookingService) {
         this.bookingService = bookingService;
     }
+
     @GetMapping
-    public List<Booking> getAllBookings() {
+    public List<BookingResponse> getAllBookings() {
         return bookingService.getAllBookings();
     }
 
     @GetMapping("/{id}")
-    public Optional<Booking> getBookingById(@PathVariable Long id) {
+    public Optional<BookingResponse> getBookingById(@PathVariable Long id) {
         return bookingService.getBookingById(id);
     }
-    @PostMapping
-    public Booking createBooking(@RequestBody Booking booking) {
-        return bookingService.createBooking(booking);
-    }
-    @PutMapping("/{id}")
-    public Booking updateBooking(
-            @PathVariable Long id,
-            @RequestBody Booking booking) {
 
-        return bookingService.updateBooking(id, booking);
+    @PostMapping
+    public BookingResponse createBooking(
+            @Valid @RequestBody BookingCreateRequest request) {
+
+        return bookingService.createBooking(request);
     }
+
+    @PutMapping("/{id}")
+    public BookingResponse updateBooking(
+            @PathVariable Long id,
+            @Valid @RequestBody BookingUpdateRequest request) {
+
+        return bookingService.updateBooking(id, request);
+    }
+
     @DeleteMapping("/{id}")
     public void deleteBooking(@PathVariable Long id) {
         bookingService.deleteBooking(id);
