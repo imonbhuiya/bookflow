@@ -1,5 +1,8 @@
 package com.bookflow.user.service;
 
+import com.bookflow.user.dto.UserCreateRequest;
+import com.bookflow.user.dto.UserUpdateRequest;
+import com.bookflow.user.dto.UserResponse;
 import com.bookflow.user.entity.User;
 import com.bookflow.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -16,19 +19,40 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserResponse> getAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    public Optional<UserResponse> getUserById(Long id) {
+        return userRepository.findById(id)
+                .map(this::mapToResponse);
     }
 
-    public User createUser(User user) {
-        return userRepository.save(user);
+    public UserResponse createUser(UserCreateRequest request) {
+
+        User user = new User(
+                request.getFirstName(),
+                request.getLastName(),
+                request.getEmail(),
+                request.getPassword(),
+                request.getPhone(),
+                request.getDateOfBirth(),
+                request.getGender(),
+                request.getStreet(),
+                request.getCity(),
+                request.getPostalCode(),
+                request.getCountry()
+        );
+
+        User savedUser = userRepository.save(user);
+
+        return mapToResponse(savedUser);
     }
 
-    public User updateUser(Long id, User user) {
+    public UserResponse updateUser(Long id, UserUpdateRequest request) {
 
         Optional<User> existingUser = userRepository.findById(id);
 
@@ -36,17 +60,19 @@ public class UserService {
 
             User userToUpdate = existingUser.get();
 
-            userToUpdate.setFirstName(user.getFirstName());
-            userToUpdate.setLastName(user.getLastName());
-            userToUpdate.setPhone(user.getPhone());
-            userToUpdate.setDateOfBirth(user.getDateOfBirth());
-            userToUpdate.setGender(user.getGender());
-            userToUpdate.setStreet(user.getStreet());
-            userToUpdate.setCity(user.getCity());
-            userToUpdate.setPostalCode(user.getPostalCode());
-            userToUpdate.setCountry(user.getCountry());
+            userToUpdate.setFirstName(request.getFirstName());
+            userToUpdate.setLastName(request.getLastName());
+            userToUpdate.setPhone(request.getPhone());
+            userToUpdate.setDateOfBirth(request.getDateOfBirth());
+            userToUpdate.setGender(request.getGender());
+            userToUpdate.setStreet(request.getStreet());
+            userToUpdate.setCity(request.getCity());
+            userToUpdate.setPostalCode(request.getPostalCode());
+            userToUpdate.setCountry(request.getCountry());
 
-            return userRepository.save(userToUpdate);
+            User updatedUser = userRepository.save(userToUpdate);
+
+            return mapToResponse(updatedUser);
         }
 
         throw new RuntimeException("User not found with id: " + id);
@@ -54,5 +80,26 @@ public class UserService {
 
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+    }
+
+    private UserResponse mapToResponse(User user) {
+
+        return new UserResponse(
+                user.getId(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getDateOfBirth(),
+                user.getGender(),
+                user.getStreet(),
+                user.getCity(),
+                user.getPostalCode(),
+                user.getCountry(),
+                user.getRole(),
+                user.isEnabled(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
+        );
     }
 }

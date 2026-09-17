@@ -1,7 +1,10 @@
 package com.bookflow.user.controller;
 
-import com.bookflow.user.entity.User;
+import com.bookflow.user.dto.UserCreateRequest;
+import com.bookflow.user.dto.UserResponse;
+import com.bookflow.user.dto.UserUpdateRequest;
 import com.bookflow.user.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,26 +21,28 @@ public class UserController {
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
+    public List<UserResponse> getAllUsers() {
         return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
-    public Optional<User> getUserById(@PathVariable Long id) {
+    public Optional<UserResponse> getUserById(@PathVariable Long id) {
         return userService.getUserById(id);
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userService.createUser(user);
+    public UserResponse createUser(
+            @Valid @RequestBody UserCreateRequest request) {
+
+        return userService.createUser(request);
     }
 
     @PutMapping("/{id}")
-    public User updateUser(
+    public UserResponse updateUser(
             @PathVariable Long id,
-            @RequestBody User user) {
+            @Valid @RequestBody UserUpdateRequest request) {
 
-        return userService.updateUser(id, user);
+        return userService.updateUser(id, request);
     }
 
     @DeleteMapping("/{id}")
