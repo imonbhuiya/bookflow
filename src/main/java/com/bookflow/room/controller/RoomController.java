@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/rooms")
@@ -26,7 +25,7 @@ public class RoomController {
     }
 
     @GetMapping("/{id}")
-    public Optional<RoomResponse> getRoomById(@PathVariable Long id) {
+    public RoomResponse getRoomById(@PathVariable Long id) {
         return roomService.getRoomById(id);
     }
 

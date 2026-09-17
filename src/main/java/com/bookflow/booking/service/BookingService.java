@@ -5,6 +5,7 @@ import com.bookflow.booking.dto.BookingResponse;
 import com.bookflow.booking.dto.BookingUpdateRequest;
 import com.bookflow.booking.entity.Booking;
 import com.bookflow.booking.repository.BookingRepository;
+import com.bookflow.exception.ResourceNotFoundException;
 import com.bookflow.room.entity.Room;
 import com.bookflow.room.repository.RoomRepository;
 import com.bookflow.user.entity.User;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class BookingService {
@@ -40,23 +40,30 @@ public class BookingService {
                 .toList();
     }
 
-    public Optional<BookingResponse> getBookingById(Long id) {
-        return bookingRepository.findById(id)
-                .map(this::mapToResponse);
+    public BookingResponse getBookingById(Long id) {
+
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Booking not found with id: " + id
+                        )
+                );
+
+        return mapToResponse(booking);
     }
 
     public BookingResponse createBooking(BookingCreateRequest request) {
 
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new ResourceNotFoundException(
                                 "User not found with id: " + request.getUserId()
                         )
                 );
 
         Room room = roomRepository.findById(request.getRoomId())
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new ResourceNotFoundException(
                                 "Room not found with id: " + request.getRoomId()
                         )
                 );
@@ -87,39 +94,45 @@ public class BookingService {
             Long id,
             BookingUpdateRequest request) {
 
-        Optional<Booking> existingBooking = bookingRepository.findById(id);
+        Booking bookingToUpdate = bookingRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Booking not found with id: " + id
+                        )
+                );
 
-        if (existingBooking.isPresent()) {
+        long numberOfNights = ChronoUnit.DAYS.between(
+                request.getCheckInDate(),
+                request.getCheckOutDate()
+        );
 
-            Booking bookingToUpdate = existingBooking.get();
+        BigDecimal totalPrice = bookingToUpdate
+                .getRoom()
+                .getPricePerNight()
+                .multiply(BigDecimal.valueOf(numberOfNights));
 
-            long numberOfNights = ChronoUnit.DAYS.between(
-                    request.getCheckInDate(),
-                    request.getCheckOutDate()
-            );
+        bookingToUpdate.modify(
+                request.getCheckInDate(),
+                request.getCheckOutDate(),
+                request.getNumberOfGuests(),
+                totalPrice
+        );
 
-            BigDecimal totalPrice = bookingToUpdate
-                    .getRoom()
-                    .getPricePerNight()
-                    .multiply(BigDecimal.valueOf(numberOfNights));
+        Booking updatedBooking = bookingRepository.save(bookingToUpdate);
 
-            bookingToUpdate.modify(
-                    request.getCheckInDate(),
-                    request.getCheckOutDate(),
-                    request.getNumberOfGuests(),
-                    totalPrice
-            );
-
-            Booking updatedBooking = bookingRepository.save(bookingToUpdate);
-
-            return mapToResponse(updatedBooking);
-        }
-
-        throw new RuntimeException("Booking not found with id: " + id);
+        return mapToResponse(updatedBooking);
     }
 
     public void deleteBooking(Long id) {
-        bookingRepository.deleteById(id);
+
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Booking not found with id: " + id
+                        )
+                );
+
+        bookingRepository.delete(booking);
     }
 
     private BookingResponse mapToResponse(Booking booking) {

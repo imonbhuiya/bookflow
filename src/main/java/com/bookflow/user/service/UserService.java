@@ -1,14 +1,14 @@
 package com.bookflow.user.service;
 
+import com.bookflow.exception.ResourceNotFoundException;
 import com.bookflow.user.dto.UserCreateRequest;
-import com.bookflow.user.dto.UserUpdateRequest;
 import com.bookflow.user.dto.UserResponse;
+import com.bookflow.user.dto.UserUpdateRequest;
 import com.bookflow.user.entity.User;
 import com.bookflow.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -26,9 +26,16 @@ public class UserService {
                 .toList();
     }
 
-    public Optional<UserResponse> getUserById(Long id) {
-        return userRepository.findById(id)
-                .map(this::mapToResponse);
+    public UserResponse getUserById(Long id) {
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found with id: " + id
+                        )
+                );
+
+        return mapToResponse(user);
     }
 
     public UserResponse createUser(UserCreateRequest request) {
@@ -54,32 +61,38 @@ public class UserService {
 
     public UserResponse updateUser(Long id, UserUpdateRequest request) {
 
-        Optional<User> existingUser = userRepository.findById(id);
+        User userToUpdate = userRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found with id: " + id
+                        )
+                );
 
-        if (existingUser.isPresent()) {
+        userToUpdate.setFirstName(request.getFirstName());
+        userToUpdate.setLastName(request.getLastName());
+        userToUpdate.setPhone(request.getPhone());
+        userToUpdate.setDateOfBirth(request.getDateOfBirth());
+        userToUpdate.setGender(request.getGender());
+        userToUpdate.setStreet(request.getStreet());
+        userToUpdate.setCity(request.getCity());
+        userToUpdate.setPostalCode(request.getPostalCode());
+        userToUpdate.setCountry(request.getCountry());
 
-            User userToUpdate = existingUser.get();
+        User updatedUser = userRepository.save(userToUpdate);
 
-            userToUpdate.setFirstName(request.getFirstName());
-            userToUpdate.setLastName(request.getLastName());
-            userToUpdate.setPhone(request.getPhone());
-            userToUpdate.setDateOfBirth(request.getDateOfBirth());
-            userToUpdate.setGender(request.getGender());
-            userToUpdate.setStreet(request.getStreet());
-            userToUpdate.setCity(request.getCity());
-            userToUpdate.setPostalCode(request.getPostalCode());
-            userToUpdate.setCountry(request.getCountry());
-
-            User updatedUser = userRepository.save(userToUpdate);
-
-            return mapToResponse(updatedUser);
-        }
-
-        throw new RuntimeException("User not found with id: " + id);
+        return mapToResponse(updatedUser);
     }
 
     public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found with id: " + id
+                        )
+                );
+
+        userRepository.delete(user);
     }
 
     private UserResponse mapToResponse(User user) {

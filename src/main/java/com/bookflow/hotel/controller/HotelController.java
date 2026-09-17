@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/hotels")
@@ -28,7 +27,7 @@ public class HotelController {
 
     // GET /api/hotels/{id}
     @GetMapping("/{id}")
-    public Optional<HotelResponse> getHotelById(@PathVariable Long id) {
+    public HotelResponse getHotelById(@PathVariable Long id) {
         return hotelService.getHotelById(id);
     }
 

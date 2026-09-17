@@ -1,5 +1,6 @@
 package com.bookflow.room.service;
 
+import com.bookflow.exception.ResourceNotFoundException;
 import com.bookflow.hotel.entity.Hotel;
 import com.bookflow.hotel.repository.HotelRepository;
 import com.bookflow.room.dto.RoomCreateRequest;
@@ -10,7 +11,6 @@ import com.bookflow.room.repository.RoomRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class RoomService {
@@ -33,16 +33,23 @@ public class RoomService {
                 .toList();
     }
 
-    public Optional<RoomResponse> getRoomById(Long id) {
-        return roomRepository.findById(id)
-                .map(this::mapToResponse);
+    public RoomResponse getRoomById(Long id) {
+
+        Room room = roomRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Room not found with id: " + id
+                        )
+                );
+
+        return mapToResponse(room);
     }
 
     public RoomResponse createRoom(RoomCreateRequest request) {
 
         Hotel hotel = hotelRepository.findById(request.getHotelId())
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new ResourceNotFoundException(
                                 "Hotel not found with id: " + request.getHotelId()
                         )
                 );
@@ -64,29 +71,35 @@ public class RoomService {
 
     public RoomResponse updateRoom(Long id, RoomUpdateRequest request) {
 
-        Optional<Room> existingRoom = roomRepository.findById(id);
+        Room roomToUpdate = roomRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Room not found with id: " + id
+                        )
+                );
 
-        if (existingRoom.isPresent()) {
+        roomToUpdate.setRoomNumber(request.getRoomNumber());
+        roomToUpdate.setRoomType(request.getRoomType());
+        roomToUpdate.setDescription(request.getDescription());
+        roomToUpdate.setPricePerNight(request.getPricePerNight());
+        roomToUpdate.setCapacity(request.getCapacity());
+        roomToUpdate.setBedCount(request.getBedCount());
 
-            Room roomToUpdate = existingRoom.get();
+        Room updatedRoom = roomRepository.save(roomToUpdate);
 
-            roomToUpdate.setRoomNumber(request.getRoomNumber());
-            roomToUpdate.setRoomType(request.getRoomType());
-            roomToUpdate.setDescription(request.getDescription());
-            roomToUpdate.setPricePerNight(request.getPricePerNight());
-            roomToUpdate.setCapacity(request.getCapacity());
-            roomToUpdate.setBedCount(request.getBedCount());
-
-            Room updatedRoom = roomRepository.save(roomToUpdate);
-
-            return mapToResponse(updatedRoom);
-        }
-
-        throw new RuntimeException("Room not found with id: " + id);
+        return mapToResponse(updatedRoom);
     }
 
     public void deleteRoom(Long id) {
-        roomRepository.deleteById(id);
+
+        Room room = roomRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Room not found with id: " + id
+                        )
+                );
+
+        roomRepository.delete(room);
     }
 
     private RoomResponse mapToResponse(Room room) {

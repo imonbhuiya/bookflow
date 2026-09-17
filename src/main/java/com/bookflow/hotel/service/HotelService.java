@@ -1,5 +1,6 @@
 package com.bookflow.hotel.service;
 
+import com.bookflow.exception.ResourceNotFoundException;
 import com.bookflow.hotel.dto.HotelCreateRequest;
 import com.bookflow.hotel.dto.HotelResponse;
 import com.bookflow.hotel.dto.HotelUpdateRequest;
@@ -8,7 +9,6 @@ import com.bookflow.hotel.repository.HotelRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class HotelService {
@@ -26,9 +26,16 @@ public class HotelService {
                 .toList();
     }
 
-    public Optional<HotelResponse> getHotelById(Long id) {
-        return hotelRepository.findById(id)
-                .map(this::mapToResponse);
+    public HotelResponse getHotelById(Long id) {
+
+        Hotel hotel = hotelRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Hotel not found with id: " + id
+                        )
+                );
+
+        return mapToResponse(hotel);
     }
 
     public HotelResponse createHotel(HotelCreateRequest request) {
@@ -54,34 +61,40 @@ public class HotelService {
 
     public HotelResponse updateHotel(Long id, HotelUpdateRequest request) {
 
-        Optional<Hotel> existingHotel = hotelRepository.findById(id);
+        Hotel hotelToUpdate = hotelRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Hotel not found with id: " + id
+                        )
+                );
 
-        if (existingHotel.isPresent()) {
+        hotelToUpdate.setName(request.getName());
+        hotelToUpdate.setDescription(request.getDescription());
+        hotelToUpdate.setStreet(request.getStreet());
+        hotelToUpdate.setCity(request.getCity());
+        hotelToUpdate.setPostalCode(request.getPostalCode());
+        hotelToUpdate.setCountry(request.getCountry());
+        hotelToUpdate.setPhone(request.getPhone());
+        hotelToUpdate.setEmail(request.getEmail());
+        hotelToUpdate.setStarRating(request.getStarRating());
+        hotelToUpdate.setCheckInTime(request.getCheckInTime());
+        hotelToUpdate.setCheckOutTime(request.getCheckOutTime());
 
-            Hotel hotelToUpdate = existingHotel.get();
+        Hotel updatedHotel = hotelRepository.save(hotelToUpdate);
 
-            hotelToUpdate.setName(request.getName());
-            hotelToUpdate.setDescription(request.getDescription());
-            hotelToUpdate.setStreet(request.getStreet());
-            hotelToUpdate.setCity(request.getCity());
-            hotelToUpdate.setPostalCode(request.getPostalCode());
-            hotelToUpdate.setCountry(request.getCountry());
-            hotelToUpdate.setPhone(request.getPhone());
-            hotelToUpdate.setEmail(request.getEmail());
-            hotelToUpdate.setStarRating(request.getStarRating());
-            hotelToUpdate.setCheckInTime(request.getCheckInTime());
-            hotelToUpdate.setCheckOutTime(request.getCheckOutTime());
-
-            Hotel updatedHotel = hotelRepository.save(hotelToUpdate);
-
-            return mapToResponse(updatedHotel);
-        }
-
-        throw new RuntimeException("Hotel not found with id: " + id);
+        return mapToResponse(updatedHotel);
     }
 
     public void deleteHotel(Long id) {
-        hotelRepository.deleteById(id);
+
+        Hotel hotel = hotelRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Hotel not found with id: " + id
+                        )
+                );
+
+        hotelRepository.delete(hotel);
     }
 
     private HotelResponse mapToResponse(Hotel hotel) {
