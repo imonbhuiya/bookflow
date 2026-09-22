@@ -1,6 +1,7 @@
 package com.bookflow.auth.controller;
 
 import com.bookflow.auth.dto.LoginRequest;
+import com.bookflow.auth.dto.LoginResponse;
 import com.bookflow.auth.dto.RegisterRequest;
 import com.bookflow.auth.service.AuthService;
 import com.bookflow.user.dto.UserResponse;
@@ -34,10 +35,10 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserResponse> login(
+    public ResponseEntity<LoginResponse> login(
             @Valid @RequestBody LoginRequest request) {
 
-        UserResponse response = authService.login(request);
+        LoginResponse response = authService.login(request);
 
         return ResponseEntity.ok(response);
     }

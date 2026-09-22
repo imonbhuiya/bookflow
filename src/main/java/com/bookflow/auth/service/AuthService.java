@@ -1,9 +1,12 @@
 package com.bookflow.auth.service;
 
 import com.bookflow.auth.dto.LoginRequest;
+import com.bookflow.auth.dto.LoginResponse;
 import com.bookflow.auth.dto.RegisterRequest;
+import com.bookflow.exception.AccountDisabledException;
 import com.bookflow.exception.EmailAlreadyExistsException;
 import com.bookflow.exception.InvalidCredentialsException;
+import com.bookflow.security.jwt.JwtService;
 import com.bookflow.user.dto.UserResponse;
 import com.bookflow.user.entity.User;
 import com.bookflow.user.repository.UserRepository;
@@ -15,13 +18,16 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public AuthService(
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService) {
 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public UserResponse register(RegisterRequest request) {
@@ -53,7 +59,7 @@ public class AuthService {
         return toUserResponse(savedUser);
     }
 
-    public UserResponse login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new InvalidCredentialsException(
@@ -66,7 +72,20 @@ public class AuthService {
             );
         }
 
-        return toUserResponse(user);
+        if (!user.isEnabled()) {
+            throw new AccountDisabledException(
+                    "User account is disabled"
+            );
+        }
+
+        String token = jwtService.generateToken(user.getEmail());
+
+        UserResponse userResponse = toUserResponse(user);
+
+        return new LoginResponse(
+                token,
+                userResponse
+        );
     }
 
     private UserResponse toUserResponse(User user) {

@@ -69,6 +69,24 @@ public class GlobalExceptionHandler {
                 .body(apiError);
     }
 
+    @ExceptionHandler(AccountDisabledException.class)
+    public ResponseEntity<ApiError> handleAccountDisabledException(
+            AccountDisabledException exception,
+            HttpServletRequest request) {
+
+        ApiError apiError = new ApiError(
+                LocalDateTime.now(),
+                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.FORBIDDEN.getReasonPhrase(),
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(apiError);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ValidationErrorResponse> handleValidationException(
             MethodArgumentNotValidException exception,
