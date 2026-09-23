@@ -8,9 +8,6 @@ import java.time.LocalDate;
 public class BookingCreateRequest {
 
     @NotNull
-    private Long userId;
-
-    @NotNull
     private Long roomId;
 
     @NotNull
@@ -24,10 +21,6 @@ public class BookingCreateRequest {
     private Integer numberOfGuests;
 
     public BookingCreateRequest() {
-    }
-
-    public Long getUserId() {
-        return userId;
     }
 
     public Long getRoomId() {
