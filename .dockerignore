@@ -1,0 +1,27 @@
+# Maven build output
+target/
+
+# Git
+.git/
+.gitignore
+
+# Environment secrets
+.env
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Docker Compose local overrides
+compose.override.yaml
+
+# Documentation not needed during image build
+README.md
+HELP.md
+docs/
